@@ -53,6 +53,7 @@ function get_profile_to_return($profiles_supported, $profiles_requested, $profil
 }
 
 // gets a list of profile URIs in most weighted order, from Accept-Profile header
+// TODO: determine if need to cater for all Accept header parts other than q, e.g. char encoding directives, if relevant
 function get_mediatypes_requested($header_accept=null) {
     if (!empty($header_accept)) {
         // tidy the header
@@ -128,62 +129,3 @@ function make_header_list_profiles($resource_uri, $profiles) {
 function make_header_content_profile($returned_profile_uri) {
     return 'Content-Profile: ' . $returned_profile_uri . "\n";
 }
-
-//$custom_profiles = array(
-//    'http://purl.org/linked-data/registry' => array(
-//        'title' => 'Registry Ontology',
-//        'description' => 'A list with minimal metadata formulated according to the Registry Ontology',
-//        'mediatypes' => array(
-//            'text/html',
-//            'text/turtle'
-//        ),
-//        'mediatype_default' => 'text/html'
-//    ),
-//    'https://w3id.org/profile/uri-list' => array(
-//        'title' => 'URI List',
-//        'description' => 'A list of just registered item URIs, one per line',
-//        'mediatypes' => array(
-//            'text/uri-list'
-//        ),
-//        'mediatype_default' => 'text/uri-list'
-//    )
-//);
-//
-//$profiles_supported = make_supported_profiles_list($custom_profiles, 'http://purl.org/linked-data/registry');
-//
-////$requested = ['http://example.com', 'https://w3id.org/profile/uri-list'];
-//$profiles_requested = get_requested_profiles();
-//print(get_profile_to_return($profiles_supported, $profiles_requested));
-
-$profiles = array(
-    'http://purl.org/linked-data/registry' => array(
-        'title' => 'Registry Ontology',
-        'description' => 'A list with minimal metadata formulated according to the Registry Ontology',
-        'mediatypes' => array(
-            'text/html',
-            'text/turtle'
-        ),
-        'mediatype_default' => 'text/html',
-        'default' => true
-    ),
-    'https://w3id.org/profile/uri-list' => array(
-        'title' => 'URI List',
-        'description' => 'A list of just registered item URIs, one per line',
-        'mediatypes' => array(
-            'text/uri-list'
-        ),
-        'mediatype_default' => 'text/uri-list'
-    ),
-    'http://www.w3.org/ns/dx/conneg/altr' => array(
-        'title' => 'Alternate Representations Data Model',
-        'description' => 'The representation of the resource that lists all other representations (profiles and Media Types)',
-        'mediatypes' => array(
-            'text/html',
-            'text/turtle'
-        ),
-        'mediatype_default' => 'text/html'
-    )
-);
-
-
-//print(make_header_list_profiles('http://example.org/resource/n', $profiles));

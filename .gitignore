@@ -1,0 +1,7 @@
+# JetBrains tools
+.idea/
+
+# Composer
+vendor/
+composer.phar
+composer.lock
