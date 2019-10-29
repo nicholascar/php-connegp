@@ -1,24 +1,19 @@
 <?php
-// set error visibility
 // include used resources
-
 // declare available Profiles and default
 // get returning representation's Profile
+// declare available Media Types for requested Profile and default
 // get returning representation's Media Type
+// get the org/ register data from the AGLDWG catalogue
+// make required ConnegP headers
 // render result based on returning Profile & Media Type
 
-// get the org/ register data from the AGLDWG catalogue
-// declare a sort by title function
-// declare available Profiles and default
-// sort data by title
-// create register items objects array
+// functions
+// get data
+// render functions
+// general render function
 
-/*
-// set error visibility
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-*/
+
 // include used resources
 require 'vendor/autoload.php';
 require 'functions.php';
@@ -58,15 +53,28 @@ $profiles_default = 'http://purl.org/linked-data/registry';
 // get returning representation's Profile
 $profiles_requested = get_profiles_requested($_SERVER['HTTP_ACCEPT_PROFILE']);
 $profile_returning = get_profile_to_return($profiles_supported, $profiles_requested, $profiles_default);
-// print('$profile_returning: ' . $profile_returning . "\n");
 
-// get returning representation's Media Type
+// declare available Media Types for requested Profile and default
 $mediatypes_supported = $profiles_supported[$profile_returning]['mediatypes'];
 $mediatype_default = $profiles_supported[$profile_returning]['mediatype_default'];
+
+// get returning representation's Media Type
 $mediatypes_requested = get_mediatypes_requested($_SERVER['HTTP_ACCEPT']);
 $mediatype_returning = get_mediatype_to_return($mediatypes_supported, $mediatypes_requested, $mediatype_default);
-// print('$mediatype_returning: ' . $mediatype_returning . "\n");
 
+// get the org/ register data from the AGLDWG catalogue
+$register_items = get_register_contents();
+
+// make required ConnegP headers
+header(make_header_list_profiles($_SERVER['REQUEST_URI'], $profiles_supported));
+header(make_header_content_profile($profile_returning));
+
+// render result based on returning Profile & Media Type
+render($register_items, $profile_returning, $mediatype_returning, $profiles_supported);
+
+
+// functions
+// get data
 function get_register_contents() {
     // get the org/ register data from the AGLDWG catalogue
     $headers = array('Accept' => 'application/json');
@@ -97,6 +105,7 @@ function get_register_contents() {
     return $register_items;
 }
 
+// render functions
 function render_as_reg_html($templates, $register_items) {
     echo $templates->render(
         'page', [
@@ -125,10 +134,42 @@ function render_as_uri_list($register_items) {
     echo $content;
 }
 
-function render($register_items, $profile_returning, $mediatype_returning) {
+function render_altp_as_html($templates, $profiles) {
+    $resource_uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+    header('Content-Type: text/turtle');
+    echo $templates->render(
+        'altp', [
+        'page_title' => 'Organisation Register',
+        'resource_uri' => $resource_uri,
+        'profiles' => $profiles
+    ]);
+}
+
+function render_altp_as_turtle($templates, $profiles) {
+    $resource_uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+    header('Content-Type: text/turtle');
+    echo $templates->render(
+        'altp-ttl', [
+        'page_title' => 'Organisation Register',
+        'resource_uri' => $resource_uri,
+        'profiles' => $profiles
+    ]);
+}
+
+// general render function
+function render($register_items, $profile_returning, $mediatype_returning, $profiles_supported) {
     switch ($profile_returning) {
         case 'http://www.w3.org/ns/dx/conneg/altr':
-            //do nothing for now
+            // all Media Types for this profile use templates
+            $templates = new League\Plates\Engine('templates');
+
+            if ($mediatype_returning == 'text/turtle') {
+                render_altp_as_turtle($templates, $profiles_supported);
+            } else {
+                render_altp_as_html($templates, $profiles_supported);
+            }
+
+
             break;
         case 'https://w3id.org/profile/uri-list':
             // only one Media Type supported for this Profile so no if statement based on Media Type
@@ -145,9 +186,3 @@ function render($register_items, $profile_returning, $mediatype_returning) {
             }
     }
 }
-
-$register_items = get_register_contents();
-
-header(make_header_list_profiles($_SERVER['REQUEST_URI'], $profiles_supported));
-header(make_header_content_profile($profile_returning));
-render($register_items, $profile_returning, $mediatype_returning);
