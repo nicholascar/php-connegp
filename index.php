@@ -66,7 +66,7 @@ $mediatype_returning = get_mediatype_to_return($mediatypes_supported, $mediatype
 $register_items = get_register_contents();
 
 // make required ConnegP headers
-header(make_header_list_profiles($_SERVER['REQUEST_URI'], $profiles_supported));
+header(make_header_list_profiles(get_fullly_qualified_resource_uri(), $profiles_supported));
 header(make_header_content_profile($profile_returning));
 
 // render result based on returning Profile & Media Type
@@ -135,7 +135,7 @@ function render_as_uri_list($register_items) {
 }
 
 function render_altp_as_html($templates, $profiles) {
-    $resource_uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+    $resource_uri = get_fullly_qualified_resource_uri();
     header('Content-Type: text/turtle');
     echo $templates->render(
         'altp', [
@@ -146,7 +146,7 @@ function render_altp_as_html($templates, $profiles) {
 }
 
 function render_altp_as_turtle($templates, $profiles) {
-    $resource_uri = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+    $resource_uri = get_fullly_qualified_resource_uri();
     header('Content-Type: text/turtle');
     echo $templates->render(
         'altp-ttl', [
@@ -168,8 +168,6 @@ function render($register_items, $profile_returning, $mediatype_returning, $prof
             } else {
                 render_altp_as_html($templates, $profiles_supported);
             }
-
-
             break;
         case 'https://w3id.org/profile/uri-list':
             // only one Media Type supported for this Profile so no if statement based on Media Type

@@ -1,5 +1,10 @@
 <?php
 
+// gets the complete request of a URI from PHPs environment variables
+function get_fullly_qualified_resource_uri() {
+    return (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+}
+
 // gets a list of profile URIs in most weighted order, from Accept-Profile header
 function get_profiles_requested($header_accept_profile=null) {
     if (!empty($header_accept_profile)) {
