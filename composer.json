@@ -1,0 +1,16 @@
+{
+    "name": "nicholascar/connegp",
+    "description": "A library of functions to assist PHP projects with HTTP implementations of the [W3C](https://www.w3.org)'s [Content Negotiation by Profile](https://www.w3.org/TR/dx-prof-conneg/).",
+    "type": "library",
+    "license": "GPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Nicholas J. Car",
+            "email": "nicholas.car@surroundaustralia.com",
+            "homepage": "https://kurrawong.net"
+        }
+    ],
+    "keywords": ["http", "content negotiation", "profile", "W3C", "data specification"],
+    "minimum-stability": "dev",
+    "require": {}
+}

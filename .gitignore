@@ -1,2 +1,4 @@
 # JetBrains tools
 .idea/
+
+/vendor/
