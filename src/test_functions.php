@@ -110,12 +110,35 @@ function test_get_requested_profiles() {
 }
 
 function test_get_profile_to_return() {
-    $profiles_supported = [
-        'http://purl.org/linked-data/registry',
-        'https://w3id.org/profile/uri-list',
-        'http://www.w3.org/ns/dx/conneg/altr',
-        'profile_default' => 'https://w3id.org/profile/uri-list'
-    ];
+    $profiles_supported = array(
+        'http://purl.org/linked-data/registry' => array(
+            'title' => 'Registry Ontology',
+            'description' => 'A list with minimal metadata formulated according to the Registry Ontology',
+            'mediatypes' => array(
+                'text/html',
+                'text/turtle'
+            ),
+            'mediatype_default' => 'text/html',
+            'default' => true
+        ),
+        'https://w3id.org/profile/uri-list' => array(
+            'title' => 'URI List',
+            'description' => 'A list of just registered item URIs, one per line',
+            'mediatypes' => array(
+                'text/uri-list'
+            ),
+            'mediatype_default' => 'text/uri-list'
+        ),
+        'http://www.w3.org/ns/dx/conneg/altr' => array(
+            'title' => 'Alternate Representations Data Model',
+            'description' => 'The representation of the resource that lists all other representations (profiles and Media Types)',
+            'mediatypes' => array(
+                'text/html',
+                'text/turtle'
+            ),
+            'mediatype_default' => 'text/html'
+        )
+    );
 
     // request a supported profile
     $profiles_requested = [
@@ -123,39 +146,41 @@ function test_get_profile_to_return() {
         'https://w3id.org/profile/uri-list'
     ];
 
-    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested);
+    $profile_default = 'http://purl.org/linked-data/registry';
+
+    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
     assert(
         $profile_returned == 'http://purl.org/linked-data/registry',
         new CustomError('test_get_profile_to_return() Test 1 profiles not equal')
     );
 
-    // request an un-supported profile, get default
+    // request an no supported profiles, gets default
     $profiles_requested = [
         'http://purl.org/linked-data/registryx',
         'https://w3id.org/profile/uri-listx'
     ];
 
-    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested);
+    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
     assert(
-        $profile_returned == 'https://w3id.org/profile/uri-list',
-        new CustomError('test_get_profile_to_return() Test 2 profiles not equal')
+        $profile_returned == $profile_default,
+        new CustomError('test_get_profile_to_return() Test 2 profiles not equal. Expected ' . $profile_default . ' got ' . $profile_returned)
     );
 
     // request no profile, get default
     $profiles_requested = [];
 
-    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested);
+    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
     assert(
-        $profile_returned == 'https://w3id.org/profile/uri-list',
+        $profile_returned == $profile_default,
         new CustomError('test_get_profile_to_return() Test 3 profiles not equal')
     );
 
     // request null, get default
-    $profiles_requested = [];
+    $profiles_requested = null;
 
-    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested);
+    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
     assert(
-        $profile_returned == 'https://w3id.org/profile/uri-list',
+        $profile_returned == $profile_default,
         new CustomError('test_get_profile_to_return() Test 4 profiles not equal')
     );
 
@@ -165,7 +190,7 @@ function test_get_profile_to_return() {
         'http://www.w3.org/ns/dx/conneg/altr'
     ];
 
-    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested);
+    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
     assert(
         $profile_returned == 'http://www.w3.org/ns/dx/conneg/altr',
         new CustomError('test_get_profile_to_return() Test 5 profiles not equal')
@@ -256,7 +281,6 @@ function test_make_header_list_profiles() {
                 'text/turtle'
             ),
             'mediatype_default' => 'text/html',
-            'default' => true
         ),
         'https://w3id.org/profile/uri-list' => array(
             'title' => 'URI List',
@@ -277,9 +301,10 @@ function test_make_header_list_profiles() {
         )
     );
 
+    $profile_default = 'http://purl.org/linked-data/registry';
 
-    $link_header_expected = 'Link: <http://example.org/resource/a> rel="self"; type="text/html"; profile="http://purl.org/linked-data/registry", <http://example.org/resource/a> rel="alternate"; type="text/turtle"; profile="http://purl.org/linked-data/registry", <http://example.org/resource/a> rel="alternate"; type="text/uri-list"; profile="https://w3id.org/profile/uri-list", <http://example.org/resource/a> rel="alternate"; type="text/html"; profile="http://www.w3.org/ns/dx/conneg/altr", <http://example.org/resource/a> rel="alternate"; type="text/turtle"; profile="http://www.w3.org/ns/dx/conneg/altr"';
-    $link_header_actual = make_header_list_profiles($resource_uri, $profiles);
+    $link_header_expected = 'Link: <http://example.org/resource/a> rel="default"; type="text/html"; profile="http://purl.org/linked-data/registry", <http://example.org/resource/a> rel="alternate"; type="text/turtle"; profile="http://purl.org/linked-data/registry", <http://example.org/resource/a> rel="alternate"; type="text/uri-list"; profile="https://w3id.org/profile/uri-list", <http://example.org/resource/a> rel="alternate"; type="text/html"; profile="http://www.w3.org/ns/dx/conneg/altr", <http://example.org/resource/a> rel="alternate"; type="text/turtle"; profile="http://www.w3.org/ns/dx/conneg/altr"';
+    $link_header_actual = make_header_list_profiles($resource_uri, $profiles, $profile_default);
 
     assert(
         trim($link_header_actual) == trim($link_header_expected),
@@ -287,12 +312,10 @@ function test_make_header_list_profiles() {
     );
 }
 
-// test_make_supported_profiles_list();
-// test_get_requested_profiles();
-// test_get_profile_to_return();
-// test_get_requested_mediatypes();
-//  test_get_mediatype_to_return();
+test_get_requested_profiles();
+test_get_profile_to_return();
+test_get_requested_mediatypes();
+test_get_mediatype_to_return();
 test_make_header_list_profiles();
 
-
-print('tests completed');
+print('tests completed' . "\n\n");

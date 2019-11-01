@@ -1,7 +1,0 @@
-{
-    "require": {
-        "rmccue/requests": "^1.7",
-        "league/plates": "^3.3"
-    }
-}
-
