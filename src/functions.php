@@ -1,6 +1,6 @@
 <?php
 
-namespace Nicholascar\ConnegP;
+namespace NicholasCar\ConnegP;
 
 // gets the complete request of a URI from PHPs environment variables
 function get_fully_qualified_resource_uri() {

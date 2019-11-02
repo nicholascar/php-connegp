@@ -19,6 +19,6 @@
     "minimum-stability": "dev",
     "require": {},
     "autoload": {
-        "psr-4": {"nicholascar\\connegp\\": "src/"}
+        "psr-4": {"NicholasCar\\ConnegP\\": "src/"}
     }
 }
