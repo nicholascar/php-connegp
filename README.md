@@ -3,7 +3,7 @@ A library of functions for HTTP Content Negotiation by Profile (https://www.w3.o
 
 This code is online at <https://github.com/nicholascar/php-connegp>.
 
-All functions are in [src/functions.php](src/functions.php) while [src/test_functions.php](src/test_functions.php) contains unit tests for most of them. The functions are documented in place but basically serve the following 3 purposes:
+All functions are in [src/functions.php](src/ConnegP.php) while [src/test_functions.php](src/test_functions.php) contains unit tests for most of them. The functions are documented in place but basically serve the following 3 purposes:
 
 1. supports the *list profiles* function
     * by creating a `Link` header with Alternate Representation information, as per the [HTTP *list profile*](https://w3c.github.io/dxwg/conneg-by-ap/#http-listprofiles) part of the ConnegP specification

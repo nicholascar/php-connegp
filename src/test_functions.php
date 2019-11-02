@@ -2,7 +2,8 @@
 
 class CustomError extends AssertionError {}
 
-include_once 'functions.php';
+require 'ConnegP.php';
+require 'Profile.php';
 
 function arrays_equal(array $a, array $b) {
     // check size of both arrays
@@ -32,7 +33,7 @@ function arrays_equal(array $a, array $b) {
     return true;
 }
 
-function test_get_requested_profiles() {
+function test_get_requested_profiles($cp) {
     // text q weighting
     $header_accept = '<http://example.org/profile/c>;q=0.8, <http://example.org/profile/a>, <http://example.org/profile/b>;q=0.9, <http://example.org/profile/d>;q=0.5';
     $results_expected = array(
@@ -41,7 +42,7 @@ function test_get_requested_profiles() {
         'http://example.org/profile/c',
         'http://example.org/profile/d',
     );
-    $results_actual = get_profiles_requested($header_accept);
+    $results_actual = $cp->get_profiles_requested($header_accept);
 
     assert(
         arrays_equal($results_expected, $results_actual),
@@ -56,7 +57,7 @@ function test_get_requested_profiles() {
         'http://example.org/profile/b',
         'http://example.org/profile/d',
     );
-    $results_actual  = get_profiles_requested($header_accept);
+    $results_actual  = $cp->get_profiles_requested($header_accept);
 
     assert(
         arrays_equal($results_expected, $results_actual),
@@ -66,7 +67,7 @@ function test_get_requested_profiles() {
     // test malformed URI - missing starting & ending  < & >
     $header_accept = '<http://example.org/profile/c>;q=0.8, http://example.org/profile/a, <http://example.org/profile/b>;q=0.9, <http://example.org/profile/d>;q=0.5';
     $results_expected = 'Malformed Accept-Profile header. All profiles must be identified with http, https or urn URIs enclosed in <>. All q values must be numeric.';
-    $results_actual = get_profiles_requested($header_accept);
+    $results_actual = $cp->get_profiles_requested($header_accept);
 
     assert(
         $results_expected ==  $results_actual,
@@ -86,7 +87,7 @@ function test_get_requested_profiles() {
     // test malformed URI - q=x
     $header_accept = '<http://example.org/profile/c>;q=x, <http://example.org/profile/a>, <http://example.org/profile/b>;q=0.9, <http://example.org/profile/d>;q=0.5';
     $results_expected = 'Malformed Accept-Profile header. All profiles must be identified with http, https or urn URIs enclosed in <>. All q values must be numeric.';
-    $results_actual = get_profiles_requested($header_accept);
+    $results_actual = $cp->get_profiles_requested($header_accept);
 
     assert(
         $results_expected ==  $results_actual,
@@ -101,7 +102,7 @@ function test_get_requested_profiles() {
         'http://example.org/profile/d',
         'http://example.org/profile/c',
     );
-    $results_actual = get_profiles_requested($header_accept);
+    $results_actual = $cp->get_profiles_requested($header_accept);
 
     assert(
         arrays_equal($results_expected, $results_actual),
@@ -109,34 +110,33 @@ function test_get_requested_profiles() {
     );
 }
 
-function test_get_profile_to_return() {
+function test_get_profile_to_return($cp) {
     $profiles_supported = array(
-        'http://purl.org/linked-data/registry' => array(
-            'title' => 'Registry Ontology',
-            'description' => 'A list with minimal metadata formulated according to the Registry Ontology',
-            'mediatypes' => array(
+        'http://purl.org/linked-data/registry' => new ConnegP\Profile(
+            'Registry Ontology',
+            'A list with minimal metadata formulated according to the Registry Ontology',
+            array(
                 'text/html',
                 'text/turtle'
             ),
-            'mediatype_default' => 'text/html',
-            'default' => true
+            'text/html'
         ),
-        'https://w3id.org/profile/uri-list' => array(
-            'title' => 'URI List',
-            'description' => 'A list of just registered item URIs, one per line',
-            'mediatypes' => array(
+        'https://w3id.org/profile/uri-list' => new ConnegP\Profile(
+            'URI List',
+            'A list of just registered item URIs, one per line',
+            array(
                 'text/uri-list'
             ),
-            'mediatype_default' => 'text/uri-list'
+            'text/uri-list'
         ),
-        'http://www.w3.org/ns/dx/conneg/altr' => array(
-            'title' => 'Alternate Representations Data Model',
-            'description' => 'The representation of the resource that lists all other representations (profiles and Media Types)',
-            'mediatypes' => array(
+        'http://www.w3.org/ns/dx/conneg/altr' => new ConnegP\Profile(
+            'Alternate Representations Data Model',
+            'The representation of the resource that lists all other representations (profiles and Media Types)',
+            array(
                 'text/html',
                 'text/turtle'
             ),
-            'mediatype_default' => 'text/html'
+            'text/html'
         )
     );
 
@@ -148,7 +148,7 @@ function test_get_profile_to_return() {
 
     $profile_default = 'http://purl.org/linked-data/registry';
 
-    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
+    $profile_returned = $cp->get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
     assert(
         $profile_returned == 'http://purl.org/linked-data/registry',
         new CustomError('test_get_profile_to_return() Test 1 profiles not equal')
@@ -160,7 +160,7 @@ function test_get_profile_to_return() {
         'https://w3id.org/profile/uri-listx'
     ];
 
-    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
+    $profile_returned = $cp->get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
     assert(
         $profile_returned == $profile_default,
         new CustomError('test_get_profile_to_return() Test 2 profiles not equal. Expected ' . $profile_default . ' got ' . $profile_returned)
@@ -169,7 +169,7 @@ function test_get_profile_to_return() {
     // request no profile, get default
     $profiles_requested = [];
 
-    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
+    $profile_returned = $cp->get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
     assert(
         $profile_returned == $profile_default,
         new CustomError('test_get_profile_to_return() Test 3 profiles not equal')
@@ -178,7 +178,7 @@ function test_get_profile_to_return() {
     // request null, get default
     $profiles_requested = null;
 
-    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
+    $profile_returned = $cp->get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
     assert(
         $profile_returned == $profile_default,
         new CustomError('test_get_profile_to_return() Test 4 profiles not equal')
@@ -190,14 +190,14 @@ function test_get_profile_to_return() {
         'http://www.w3.org/ns/dx/conneg/altr'
     ];
 
-    $profile_returned = get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
+    $profile_returned = $cp->get_profile_to_return($profiles_supported, $profiles_requested, $profile_default);
     assert(
-        $profile_returned == 'http://www.w3.org/ns/dx/conneg/altr',
+        $profile_returned == $profile_default,
         new CustomError('test_get_profile_to_return() Test 5 profiles not equal')
     );
 }
 
-function test_get_requested_mediatypes() {
+function test_get_requested_mediatypes($cp) {
     // q weighting
     $header_accept = 'text/html;q=0.8, text/turtle, application/pdf;q=0.9, text/n3;q=0.5';
     $results_expected = array(
@@ -206,7 +206,7 @@ function test_get_requested_mediatypes() {
         'text/html',
         'text/n3',
     );
-    $results_actual = get_mediatypes_requested($header_accept);
+    $results_actual = $cp->get_mediatypes_requested($header_accept);
 
     assert(
         arrays_equal($results_expected, $results_actual),
@@ -221,7 +221,7 @@ function test_get_requested_mediatypes() {
         'application/pdf',
         'text/html',
     );
-    $results_actual = get_mediatypes_requested($header_accept);
+    $results_actual = $cp->get_mediatypes_requested($header_accept);
 
     assert(
         arrays_equal($results_expected, $results_actual),
@@ -231,7 +231,7 @@ function test_get_requested_mediatypes() {
     // broken header
     $header_accept = 'text/html;q=0.8, text/,turtle, application/pdf;q=0.9, text/n3';
     $results_expected = 'Malformed Accept header. All Media Types must be IANA Media Types of the form xxxx/yyyy.';
-    $results_actual = get_mediatypes_requested($header_accept);
+    $results_actual = $cp->get_mediatypes_requested($header_accept);
 
     assert(
         $results_expected == $results_actual,
@@ -239,7 +239,7 @@ function test_get_requested_mediatypes() {
     );
 }
 
-function test_get_mediatype_to_return() {
+function test_get_mediatype_to_return($cp) {
     // simple request
     $mediatypes_supported = [
         'text/turtle',
@@ -252,7 +252,7 @@ function test_get_mediatype_to_return() {
         'text/n3'
     ];
 
-    $mediatypes_returned = get_mediatype_to_return($mediatypes_supported, $mediatypes_requested, 'text/html');
+    $mediatypes_returned = $cp->get_mediatype_to_return($mediatypes_supported, $mediatypes_requested, 'text/html');
     assert(
         $mediatypes_returned == 'text/n3',
         new CustomError('test_get_mediatype_to_return() Test 1 Media Types not equal')
@@ -263,14 +263,14 @@ function test_get_mediatype_to_return() {
         'text/xxx'
     ];
 
-    $mediatypes_returned = get_mediatype_to_return($mediatypes_supported, $mediatypes_requested, 'text/html');
+    $mediatypes_returned = $cp->get_mediatype_to_return($mediatypes_supported, $mediatypes_requested, 'text/html');
     assert(
         $mediatypes_returned == 'text/html',
         new CustomError('test_get_mediatype_to_return() Test 2 Media Types not equal')
     );
 }
 
-function test_make_header_list_profiles() {
+function test_make_header_list_profiles($cp) {
     $resource_uri = 'http://example.org/resource/a';
     $profiles = array(
         'http://purl.org/linked-data/registry' => array(
@@ -304,7 +304,7 @@ function test_make_header_list_profiles() {
     $profile_default = 'http://purl.org/linked-data/registry';
 
     $link_header_expected = 'Link: <http://example.org/resource/a> rel="default"; type="text/html"; profile="http://purl.org/linked-data/registry", <http://example.org/resource/a> rel="alternate"; type="text/turtle"; profile="http://purl.org/linked-data/registry", <http://example.org/resource/a> rel="alternate"; type="text/uri-list"; profile="https://w3id.org/profile/uri-list", <http://example.org/resource/a> rel="alternate"; type="text/html"; profile="http://www.w3.org/ns/dx/conneg/altr", <http://example.org/resource/a> rel="alternate"; type="text/turtle"; profile="http://www.w3.org/ns/dx/conneg/altr"';
-    $link_header_actual = make_header_list_profiles($resource_uri, $profiles, $profile_default);
+    $link_header_actual = $cp->make_header_list_profiles($resource_uri, $profiles, $profile_default);
 
     assert(
         trim($link_header_actual) == trim($link_header_expected),
@@ -312,10 +312,11 @@ function test_make_header_list_profiles() {
     );
 }
 
-test_get_requested_profiles();
-test_get_profile_to_return();
-test_get_requested_mediatypes();
-test_get_mediatype_to_return();
-test_make_header_list_profiles();
+$cp = new ConnegP\ConnegP();
+test_get_requested_profiles($cp);
+test_get_profile_to_return($cp);
+test_get_requested_mediatypes($cp);
+test_get_mediatype_to_return($cp);
+test_make_header_list_profiles($cp);
 
 print('tests completed' . "\n\n");
