@@ -1,5 +1,5 @@
 # PHP ConnegP
-A library of functions to assist PHP projects with HTTP implementations of the [W3C](https://www.w3.org)'s [Content Negotiation by Profile](https://www.w3.org/TR/dx-prof-conneg/).
+A library of functions for HTTP Content Negotiation by Profile (https://www.w3.org/TR/dx-prof-conneg/).
 
 This code is online at <https://github.com/nicholascar/php-connegp>.
 
